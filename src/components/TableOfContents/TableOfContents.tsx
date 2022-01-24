@@ -1,5 +1,7 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useTableOfContents } from './useTableOfContents';
+import { ContentItem } from './types/ContentItem';
+import {useMenuItems} from '../../hooks/useMenuItems'
 
 type TableOfContentsProps = ReturnType<typeof useTableOfContents>;
 
@@ -13,13 +15,32 @@ type TableOfContentsProps = ReturnType<typeof useTableOfContents>;
 //      item_3_1
 //  item_4
 
-export const TableOfContents: FC<TableOfContentsProps> = ({ items, onClick }) => (
-    <div>
-        {items.map((item) => (
-            <div key={item.id} style={{ display: 'flex' }}>
-                <div style={{ width: item.level * 20, height: 10 }} />
-                <button onClick={onClick(item)}>{item.name}</button>
-            </div>
-        ))}
-    </div>
+interface ITableItemOrMenuItemProps {
+    item: ContentItem;
+}
+
+const TableItemOrMenuItem = ({item}: ITableItemOrMenuItemProps) => {
+const {id, name, level} = item;
+const [showSubmenu, setShowSubmenu] = useState<boolean>(false)
+const {onClickMenuOrItem, selectedItems} = useMenuItems()
+const onClickMenu = (e: any) => {
+     onClickMenuOrItem(e)
+     setShowSubmenu(!showSubmenu)
+}
+    return(
+        <div style={{margin: '5px 15px'}}>
+        <button id={id} name={name} data-level={level} onClick={onClickMenu}>{name}</button>
+        {
+        selectedItems && showSubmenu && selectedItems.map(item => <TableItemOrMenuItem item={item} />)
+        }
+        </div>
+    )
+}
+
+export const TableOfContents: FC<TableOfContentsProps> = ({ items }) => {
+    return(
+        <section style={{width: 200, backgroundColor:'grey', padding: 15}}>
+            {items.map(item => !item.parentId && <TableItemOrMenuItem item={item} />)}
+        </section>
 );
+        }
